@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>模拟实现带有滚动条的下拉菜单</title>
+	<style type="text/css">
+		ul,
+		li {
+			list-style-type: none;
+			padding: 0;
+			margin: 0
+		}
+
+		* {
+			background-color: teal;
+		}
+
+		.select_box {
+			margin-top: 300px;
+			width: 284px;
+			height: 36px;
+			border: 1px solid #ffffff;
+			border-radius: 1px;
+			background-color: transparent;
+			margin-left: 10px;
+			cursor: pointer;
+			position: relative;
+			text-align: center;
+			font-size: 18px;
+		}
+
+		.select_box input {
+			width: 284px;
+			height: 36px;
+			line-height: 36px;
+			font-size: 18px;
+			color: #fff;
+			font-weight: bold;
+			text-align: center;
+			background: transparent;
+			border: 0px;
+			cursor: pointer;
+			display: block;
+			outline: none;
+		}
+
+		.select_box ul {
+			position: absolute;
+			left: 0;
+			top: 0;
+			overflow: hidden;
+			margin-left: -1px;
+			display: none;
+			text-align: center;
+			width: 284px;
+			list-style: none;
+			padding: 0px;
+			margin-top: 36px;
+			margin-left: -1;
+			border: 1px solid #ffffff;
+			background-color: transparent;
+			z-index: 9999;
+		}
+
+		.select_box ul li {
+			display: block;
+			width: 284px;
+			height: 36px;
+			line-height: 36px;
+			font-size: 18px;
+			color: #fff;
+			font-weight: bold;
+			cursor: pointer;
+			text-align: center;
+		}
+
+		.hover {
+			background: #ccc;
+		}
+	</style>
+	<script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function () {
+			$(".select_box input").click(function () {
+				var thisinput = $(this);
+				var thisul = $(this).parent().find("ul");
+				if (thisul.css("display") == "none") {
+					//显示出来滚动条 
+					if (thisul.height() > 144) {
+						thisul.css({ height: "144" + "px", "overflow-y": "scroll" })
+					};
+					thisul.show();
+					thisul.hover(function () { }, function () { thisul.fadeOut("100"); });
+					//连续多个事件 
+					thisul.find("li").click(function () {
+						thisinput.val($(this).text());
+						thisul.hide();
+					}).hover(function () { $(this).addClass("hover"); }, function () { $(this).removeClass("hover"); });
+				}
+				else {
+					thisul.hide();
+				}
+			})
+
+			// 点击别的地方隐藏
+			$(document).bind("click", function (e) {
+				var e = e || window.event;  //事件对象，兼容IE
+				var target = e.target || e.srcElement; //源对象，兼容火狐和IE
+				while (target) {
+					if (target.id && target.id == "vm_select") {  //循环判断至根节点，防止点击的是#selected和它的子元素
+						return;
+					}
+					target = target.parentNode;
+				}
+				$(".select_ul").hide();  //点击的不是#selected和它的子元素，隐藏下拉菜单
+			})
+		}); 
+	</script>
+</head>
+<body>
+	<div class="select_box" id='vm_select'>
+		 <input  type="text" value="各地消防总队" readonly="readonly" style="background: url(./image/xiafanye.png) no-repeat; background-size:10px 6px;background-position:95% 50%;">
+		<ul class="select_ul">
+			<li>丫丫</li>
+			<li>66</li>
+			<li>肉肉</li>
+			<li>天天</li>
+			<li>桦桦</li>
+			<li>歌歌</li>
+			<li>飞飞</li>
+			<li>老魏头</li>
+			<li>大牛</li>
+		</ul>
+	</div>
+</body>
+</body>
+</html>

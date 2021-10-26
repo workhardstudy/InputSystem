@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	<script type="text/javascript">
+		var x;
+		console.log(typeof(x));
+		x = 5;
+		console.log(typeof(x));
+		x = "test";
+		console.log(typeof(x));
+		x = true;
+		console.log(typeof(x));
+		x=null;
+		console.log(typeof(x));
+		console.log(typeof(null));
+		console.log(typeof(undefined));
+		console.log(typeof(NaN));
+		x=undefined;
+		console.log(typeof(x));
+		document.write("test"+5);
+		document.write("<br>");
+		document.write("3"+5);
+		document.write("<br>");
+		document.write(5+"3");
+		document.write("<br>");
+		document.write(x="3"+5);
+		document.write("<br>");
+		document.write(x=5+"3");
+		document.write("<br>");
+		x="3"+5
+		document.write(x);
+		document.write("<br>");
+		x=5+"3"
+		document.write(x);
+		document.write("<br>");
+		var y = new String;
+		document.write(typeof(y));
+		document.write("<br>");
+		y = 5;
+		document.write(y);
+		document.write("<br>");
+		document.write(typeof(y));
+		document.write("<br>");
+		var a = new Boolean;
+		document.write(typeof(a));
+		document.write("<br>");
+	</script>
+</body>
+</html>

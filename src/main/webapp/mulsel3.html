@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>下拉复选框</title>
+<style type="text/css">
+	.hobbies input[type="button"]{
+		background:transparent;
+		text-align:left;
+		cursor:pointer;
+	}
+	.hobbies ul{
+  		width: fit-content;
+		height:200px;
+		overflow-y:auto;
+		list-style:none;
+		border:1px solid black;		
+		background:transparent;
+		margin-top:-1px;
+		padding:0px;	
+	}
+	.hobbies ul li{
+		white-space:nowrap;		
+		user-select:none;
+		-ms-user-select: none;
+		padding:2px 10px 2px 10px;
+		cursor:pointer;
+	}
+	.hobbies ul li:hover{
+		background-color:lightgray;
+	}
+</style>
+<script type="text/javascript">
+	
+</script>
+</head>
+<body>
+	<div class="hobbies">    	
+      	<input type="button" value="请选择喜欢的运动">
+      	<ul>
+        	<li>
+        		<input type="checkbox">全部 
+        	</li>      
+      		<li>
+     			<input type="checkbox" name="hobby" value="游泳">游泳  			
+      		</li>    
+      		<li>
+      			<input type="checkbox" name="hobby" value="跑步">跑步
+      		</li>
+      		<li>
+      			<input type="checkbox" name="hobby" value="跳伞">跳伞
+      		</li>
+      		<li>
+      			<input type="checkbox" name="hobby" value="散打">散打
+      		</li>
+      		<li>
+      			<input type="checkbox" name="hobby" value="打篮球">打篮球
+      		</li>
+      		<li>
+      			<input type="checkbox" name="hobby" value="踢足球">踢足球
+      		</li>
+      		<li>
+      			<input type="checkbox" name="hobby" value="骑自行车">骑自行车
+      		</li>
+      		<li>
+      			<input type="checkbox" name="hobby" value="打乒乓球">打乒乓球
+      		</li>
+    	</ul>    	
+    </div>
+</body>
+</html>
