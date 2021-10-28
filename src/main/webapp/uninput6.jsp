@@ -85,6 +85,9 @@
 		text-decoration:none;
 		color:black;
 	}
+	input[type="text"]{
+		width:100px;
+	}
 </style>
 <script src="js/jquery-3.6.0.js"></script>
 <script src="js/multiple-select.js" type="text/javascript"></script>
@@ -171,7 +174,7 @@
 	//校验数据类型，并初始化查询条件
 	try{
 		//初始化页面大小，校验数值型
-		if(pageSize != null)
+		if(pageSize != null && !pageSize.equals("all"))
 			size = Integer.parseInt(pageSize);
 		//初始化查询页数，校验数值型
 		if(pageIndex != null)
@@ -302,6 +305,10 @@
 <span>开始出院日期：<input type="date" name="cydate1" value="${param.cydate1}"/>&nbsp;</span>
 <!-- 选择的结束出院日期回显 -->
 <span>结束出院日期：<input type="date" name="cydate2" value="${param.cydate2}"/>&nbsp;</span>
+<!-- 输入患者姓名并回显 -->
+<span>姓名：<input type="text" name="name" value="${param.name}"/>&nbsp;</span>
+<!-- 输入患者住院号并回显 -->
+<span>住院号：<input type="text" name="number" value="${param.number}"/>&nbsp;</span>
 <span>分页大小：<select name="pageSize">
 	<!-- 设置分页大小，且回显 -->
 	<c:forEach begin="50" end="200" step="50" var="i">
@@ -314,6 +321,14 @@
 			</c:otherwise>
 		</c:choose>
 	</c:forEach>
+	<c:choose>
+		<c:when test="${param.pageSize eq 'all'}">
+			<option value="all" selected="selected">全部</option>
+		</c:when>
+		<c:otherwise>
+			<option value="all">全部</option>
+		</c:otherwise>
+	</c:choose>
 </select>&nbsp;</span>
 <input type="hidden" id="index" name="pageIndex" value="${empty param.pageIndex?1:param.pageIndex}"/>
 <input type="submit" value="查询"/>
@@ -343,7 +358,7 @@
        		 	<th>姓名</th> 
         		<th>出院科室</th> 
         		<th>出院日期</th> 
-        		<th><input type="checkbox" name="input">全选</th>  
+        		<th><input type="checkbox" name="input">操作</th>  
 			</tr>  
 			<!-- 显示查询结果 -->
 			<c:if test="${patients ne null}">	
