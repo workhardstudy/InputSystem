@@ -155,27 +155,27 @@
 <body>
 <%
 	//获取请求参数，即查询条件
-	String[] deps = request.getParameterValues("cydeps"); 
-	String cyDate1 = request.getParameter("cydate1");
-	String cyDate2 = request.getParameter("cydate2");
-	String pageSize = request.getParameter("pageSize");
-	String pageIndex = request.getParameter("pageIndex");
+	String[] deps = request.getParameterValues("cydeps");//选择的出院科室 
+	String cyDate1 = request.getParameter("cydate1");//选择的出院日期1
+	String cyDate2 = request.getParameter("cydate2");//选择的出院日期2
+	String pageSize = request.getParameter("pageSize");//选择的分页大小
+	String pageIndex = request.getParameter("pageIndex");//选择的查询页数
+	String name = request.getParameter("name");//填写的姓名
+	String number = request.getParameter("number");//填写的住院号
 	
 	//创建中间变量
 	ArrayList<Patient> patients = null;//存储查询结果
 	String cyDeps=null;//存储出院科室字符串
-	int size=0;//页面大小
+	//int size=0;//页面大小
 	int index=1;//选择页数
 	int count=0;//总记录数
-	int total=0;//总页数	
-	
-	
-	
+	int total=1;//总页数	
+		
 	//校验数据类型，并初始化查询条件
 	try{
 		//初始化页面大小，校验数值型
-		if(pageSize != null && !pageSize.equals("all"))
-			size = Integer.parseInt(pageSize);
+		//if(pageSize != null && !pageSize.equals("all"))
+			//size = Integer.parseInt(pageSize);
 		//初始化查询页数，校验数值型
 		if(pageIndex != null)
 			index = Integer.parseInt(pageIndex);
@@ -191,20 +191,18 @@
 		if(cyDate2 != null && !cyDate2.equals("")){
 			Date date = sFormat.parse(cyDate2);
 			cyDate2 = sFormat.format(date);
-			//结束出院日期增加一天
-			//Calendar cal = Calendar.getInstance();
-			//cal.setTime(date);
-			//cal.add(Calendar.DAY_OF_MONTH, 1);
-			//cyDate2 = sFormat.format(cal.getTime()); 			
 		}else
 			cyDate2="";
 		//初始化出院科室，字符串
 		StringBuffer cydeps = new StringBuffer();//缓存拼接出院科室字符串
-		if(deps!=null) 	    	
+		if(deps==null || deps.length==0)
+			cyDeps="''";
+		else{	    	
 	    	for(String cydep : deps)
 	    		cydeps.append("'").append(cydep).append("',");    
-	    if(cydeps.length()>0)
-	    	cyDeps=cydeps.delete(cydeps.length()-1,cydeps.length()).toString();
+	    	if(cydeps.length()>0)
+	    		cyDeps=cydeps.delete(cydeps.length()-1,cydeps.length()).toString();
+		}
 	}catch(Exception e){
 		out.write("<script>$(alert(\"请输入有效参数，请选择出院科室、出院日期、页面大小及查询页数。\"));</script>");
 		e.printStackTrace();
@@ -214,14 +212,14 @@
 	//但是上次的查询条件需要缓存，如果查询条件改变，选择页数应该重置为第1页，用session实现。
 	//session保存这次的查询结果用于一页查询结果的导出功能。
 	if(cyDeps!=null&&cyDate1!=null&&cyDate2!=null&&!cyDeps.equals("")
-	&&!cyDate1.equals("")&&!cyDate2.equals("")&&size>0){
+	&&!cyDate1.equals("")&&!cyDate2.equals("")&&pageSize!=null){
 		//声明旧的查询条件
 		Page oldPage = (Page)session.getAttribute("oldPage");
 		Map<String,Object> oldData = null;
 		String oldcyDeps = null;
 		String oldcyDate1 = null;
 		String oldcyDate2 = null;
-		int oldSize = 0;
+		String oldSize = null;
 		//获取上次查询条件
 		if(oldPage!=null){
 			oldData = oldPage.getdata();
