@@ -3,7 +3,9 @@ package utils;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 
 import org.apache.commons.csv.CSVFormat;
@@ -59,8 +61,10 @@ public class Download extends HttpServlet {
 					String cyDeps = (String) oldData.get("cydeps");
 					String cyDate1 = (String) oldData.get("cyDate1");
 					String cyDate2 = (String) oldData.get("cyDate2");
+					String name = (String) oldData.get("name");
+					String number = (String) oldData.get("number");
 					try {
-						patients = new PatientDAO().queryPatientsBasic(cyDeps, cyDate1, cyDate2);
+						patients = new PatientDAO().queryPatientsBasic(cyDeps, cyDate1, cyDate2, name, number);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -81,7 +85,7 @@ public class Download extends HttpServlet {
 						wb = new XSSFWorkbook();
 						suffix = ".xlsx";
 					}
-					fileName = fileName + "查询结果" + suffix;
+					fileName = fileName + "查询结果" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + suffix;
 					// 设置文件头：最后一个参数是设置下载文件名
 					response.setHeader("Content-Disposition",
 							"attachment;fileName=" + URLEncoder.encode(fileName, "UTF-8"));

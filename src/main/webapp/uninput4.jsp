@@ -265,7 +265,7 @@
 				oldcyDate1 = (String)oldData.get("cyDate1");
 				oldcyDate2 = (String)oldData.get("cyDate2");
 			}
-			oldSize = oldPage.getsize();
+			oldSize = Integer.parseInt(oldPage.getsize());
 		}	
 		//按照条件查询总记录数
 		PatientDAO patientDAO = new PatientDAO();
@@ -299,7 +299,7 @@
 		oldData.put("patients", patients);
 		oldData.put("index", index);
 		oldPage.setdata(oldData);
-		oldPage.setsize(size);
+		oldPage.setsize(pageSize);
 		session.setAttribute("oldPage", oldPage);
 	}
 	

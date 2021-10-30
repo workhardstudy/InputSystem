@@ -103,7 +103,7 @@
 	//获取在session保存的旧页面数据
 	Page oldPage =(Page)session.getAttribute("oldPage");
 	if(oldPage != null){
-		int oldsize = oldPage.getsize();
+		int oldsize = Integer.parseInt(oldPage.getsize());;
 		int oldindex = oldPage.getindex();
 		Map<String,Object> oldData = oldPage.getdata();
 		String oldcydps = (String)oldData.get("cydeps");
@@ -135,7 +135,7 @@
 		}		
 		//重新设置旧的页面数据
 		if(oldsize!=size)
-			oldPage.setsize(size);
+			oldPage.setsize(pageSize);
 		if(oldindex!=index)
 			oldPage.setindex(index);
 		if(!oldcydps.equals(cyDeps))
@@ -154,7 +154,7 @@
 		total = (int)Math.ceil(count/size);
 		patients = patientDAO.queryPatientsBasic(cyDeps,cyDate1,cyDate2,size,index,count,total);
 		//封装页面数据
-		oldPage.setsize(size);
+		oldPage.setsize(pageSize);
 		oldPage.setindex(index);
 		oldPage.setcount(count);
 		oldPage.settotal(total);

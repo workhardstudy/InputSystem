@@ -85,7 +85,7 @@
 	
 	//封装请求参数，同时用于保存查询结果
 	Page newPage=new Page();
-	newPage.setsize(size);
+	newPage.setsize(pageSize);
 	newPage.setindex(index);
 	Map<String,Object> newData=new HashMap<String,Object>();
 	newData.put("cydeps", cydeps.toString());
@@ -96,7 +96,7 @@
 	//获取在session保存的旧页面数据
 	Page oldPage =(Page)session.getAttribute("oldPage");
 	if(oldPage != null){
-		int oldsize = oldPage.getsize();
+		int oldSize = Integer.parseInt(oldPage.getsize());
 		int oldindex = oldPage.getindex();
 		Map<String,Object> oldData = oldPage.getdata();
 		String oldcydps = (String)oldData.get("cydeps");
@@ -107,7 +107,7 @@
 		}else{
 			count = new PatientDAO().count(cyDeps.toString(), cyDate1, cyDate2);
 		}		
-		if(oldcydps.equals(cyDeps.toString()) && oldcydate1.equals(cyDate1) && oldcydate2.equals(cyDate2) && oldsize==size){
+		if(oldcydps.equals(cyDeps.toString()) && oldcydate1.equals(cyDate1) && oldcydate2.equals(cyDate2) && oldSize==size){
 			total = oldPage.gettotal();	
 		}else{
 			System.out.println("测试total：");
@@ -118,7 +118,7 @@
 		}
 		newPage.setcount(count);
 		newPage.settotal(total);
-		if(oldcydps.equals(cyDeps.toString()) && oldcydate1.equals(cyDate1) && oldcydate2.equals(cyDate2) && oldsize==size && oldindex==index){
+		if(oldcydps.equals(cyDeps.toString()) && oldcydate1.equals(cyDate1) && oldcydate2.equals(cyDate2) && oldSize==size && oldindex==index){
 			patients = (ArrayList<Patient>)oldData.get("patients");
 		}else{
 			patients = new PatientDAO().queryPatientsBasic(newPage);

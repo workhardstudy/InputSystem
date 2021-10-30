@@ -7,7 +7,8 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" type="text/css" href="css/multiple-select.css"/>
+<link rel="shortcut icon" type="image/ico" href="favicon.ico"/>  
+<link rel="stylesheet" type="text/css" href="css/multiple-select.css"/>  
 <style type="text/css">
 	table{
 		margin:auto;
@@ -166,7 +167,7 @@
 	//创建中间变量
 	ArrayList<Patient> patients = null;//存储查询结果
 	String cyDeps=null;//存储出院科室字符串
-	//int size=0;//页面大小
+	int size=0;//页面大小
 	int index=1;//选择页数
 	int count=0;//总记录数
 	int total=1;//总页数	
@@ -203,6 +204,12 @@
 	    	if(cydeps.length()>0)
 	    		cyDeps=cydeps.delete(cydeps.length()-1,cydeps.length()).toString();
 		}
+		//初始化患者姓名
+		if(name==null)
+			name="";
+		//初始化患者住院号
+		if(number==null)
+			number="";
 	}catch(Exception e){
 		out.write("<script>$(alert(\"请输入有效参数，请选择出院科室、出院日期、页面大小及查询页数。\"));</script>");
 		e.printStackTrace();
@@ -211,7 +218,7 @@
 	//重要问题：因为已导出未录入的数据可能时刻改变，所以查询结果不适合缓存，每次都要连接数据库重新查询。
 	//但是上次的查询条件需要缓存，如果查询条件改变，选择页数应该重置为第1页，用session实现。
 	//session保存这次的查询结果用于一页查询结果的导出功能。
-	if(cyDeps!=null&&cyDate1!=null&&cyDate2!=null&&!cyDeps.equals("")
+	if(cyDeps!=null&&cyDate1!=null&&cyDate2!=null&&!cyDeps.equals("''")
 	&&!cyDate1.equals("")&&!cyDate2.equals("")&&pageSize!=null){
 		//声明旧的查询条件
 		Page oldPage = (Page)session.getAttribute("oldPage");
@@ -220,6 +227,8 @@
 		String oldcyDate1 = null;
 		String oldcyDate2 = null;
 		String oldSize = null;
+		String oldName = null;
+		String oldNumber = null;
 		//获取上次查询条件
 		if(oldPage!=null){
 			oldData = oldPage.getdata();
@@ -227,29 +236,49 @@
 				oldcyDeps = (String)oldData.get("cydeps");
 				oldcyDate1 = (String)oldData.get("cyDate1");
 				oldcyDate2 = (String)oldData.get("cyDate2");
+				oldName = (String)oldData.get("name");
+				oldNumber = (String)oldData.get("number");
 			}
 			oldSize = oldPage.getsize();
 		}	
-		//按照条件查询总记录数
+		
 		PatientDAO patientDAO = new PatientDAO();
-		count = patientDAO.count(cyDeps, cyDate1, cyDate2);
-		//如果查询条件有效，即总记录数不等于0，则根据条件查询患者信息，否则重置查询页数为第1页。
-		if(count!=0){
-			//计算总页数
-			if(count%size==0)
-				total = count/size;
-			else
-				total = count/size+1;
-			//比较当前查询条件与上次查询条件，如果选择页数超界或者查询条件改变，则重置选择页数为第1页。
-			if(index>total||index<1||size!=oldSize||!cyDeps.equals(oldcyDeps)
-					||!cyDate1.equals(oldcyDate1)||!cyDate2.equals(oldcyDate2))
+	//录入时导致病案记录发生变化，患者数量可能发生改变，且需要避免不同用户同时修改同一记录出现的错误，应该在录入时增加同步操作。
+	//两次查询，第一次按照条件查询总数，第二次按照条件查询患者，如果中间发生录入操作，则两次查询到的患者实际不一定相同。
+	//为了保证第一次查询和第二次查询代表的患者一致，使用同步代码块，且和录入使用同一个对象锁，即当前JSP编译的Servlet的对象。
+	//由于录入和查询都使用同步操作限制，查询和录入用户多时效率低，但是应该只限当前系统，和广东省病案系统的录入功能独立，造成最终效果不是很好。
+	synchronized(this){
+		//按照条件查询总记录数
+		count = patientDAO.count(cyDeps, cyDate1, cyDate2,name,number);
+		//是否分页查询
+		if(!pageSize.equals("all")){
+			//分页查询	
+			size = Integer.parseInt(pageSize);
+			//如果查询条件有效，即总记录数不等于0，则根据条件查询患者信息，否则重置查询页数为第1页。
+			if(count!=0){
+				//计算总页数
+				if(count%size==0)
+					total = count/size;
+				else
+					total = count/size+1;
+				//比较当前查询条件与上次查询条件，如果选择页数超界或者查询条件改变，则重置选择页数为第1页。
+				if(index>total||index<1||!pageSize.equals(oldSize)||!cyDeps.equals(oldcyDeps)||!cyDate1.equals(oldcyDate1)
+					||!cyDate2.equals(oldcyDate2)||!name.equals(oldName)||!number.equals(oldNumber))
+					index=1;
+				patients = patientDAO.queryPatientsBasic(cyDeps,cyDate1,cyDate2,name,number,size,index,count,total);
+			}else
 				index=1;
-			patients = patientDAO.queryPatientsBasic(cyDeps,cyDate1,cyDate2,size,index,count,total);
-			//下一步几乎不会发生，为了以防万一，添加重置条件，即查询结果的患者数量为0，则重置选择页数为第1页。
-			if(patients==null||patients.size()==0)
-				index=1;
-		}else
+		}else{
+			//非分页查询
+			patients = patientDAO.queryPatientsBasic(cyDeps,cyDate1,cyDate2,name,number);
 			index=1;
+		}
+	}
+		
+		//添加重置条件，即查询结果的患者数量为0，则重置选择页数为第1页。
+		if(patients==null||patients.size()==0)
+			index=1;
+
 		if(oldData==null)
 			oldData=new HashMap<String,Object>();
 		if(oldPage==null)
@@ -257,10 +286,12 @@
 		oldData.put("cydeps", cyDeps);
 		oldData.put("cyDate1", cyDate1);
 		oldData.put("cyDate2", cyDate2);
+		oldData.put("name", name);
+		oldData.put("number", number);
 		oldData.put("patients", patients);
 		oldData.put("index", index);
 		oldPage.setdata(oldData);
-		oldPage.setsize(size);
+		oldPage.setsize(pageSize);
 		session.setAttribute("oldPage", oldPage);
 		
 		pageContext.setAttribute("index", index);
@@ -309,22 +340,25 @@
 <span>住院号：<input type="text" name="number" value="${param.number}"/>&nbsp;</span>
 <span>分页大小：<select name="pageSize">
 	<!-- 设置分页大小，且回显 -->
-	<c:forEach begin="50" end="200" step="50" var="i">
-		<c:choose>
-			<c:when test="${param.pageSize eq i}">
-				<option value="${i}" selected="selected">${i}</option>
-			</c:when>
-			<c:otherwise>
-				<option value="${i}">${i}</option>
-			</c:otherwise>
-		</c:choose>
-	</c:forEach>
 	<c:choose>
-		<c:when test="${param.pageSize eq 'all'}">
-			<option value="all" selected="selected">全部</option>
+		<c:when test="${param.pageSize ne 'all'}">
+			<c:forEach begin="50" end="200" step="50" var="i">
+				<c:choose>
+					<c:when test="${param.pageSize eq i}">
+						<option value="${i}" selected="selected">${i}</option>
+					</c:when>
+					<c:otherwise>
+						<option value="${i}">${i}</option>
+					</c:otherwise>
+				</c:choose>
+			</c:forEach>
+			<option value="all">全部</option>
 		</c:when>
 		<c:otherwise>
-			<option value="all">全部</option>
+			<c:forEach begin="50" end="200" step="50" var="i">
+				<option value="${i}">${i}</option>
+			</c:forEach>
+			<option value="all" selected="selected">全部</option>
 		</c:otherwise>
 	</c:choose>
 </select>&nbsp;</span>

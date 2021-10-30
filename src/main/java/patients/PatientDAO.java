@@ -116,36 +116,44 @@ public class PatientDAO {
 	}
 
 //---------------------------修改后-------------------------------------------------------
+	// 非分页查询
 	@SuppressWarnings("unchecked")
 	public ArrayList<Patient> queryPatientsBasic(String cyDeps, String cyDate1, String cyDate2, String name,
-			String number, String pageSize, int index, int count, int total) throws Exception {
+			String number) throws Exception {
 		cyDate2 = "'" + cyDate2 + " 23:59:59.999'";
-		String sql = null;
-		if (!pageSize.equals("all")) {
-			int size = Integer.parseInt(pageSize);
-			// 设置top和row_number()
-			int top = 0;
-			int row = (index - 1) * size;
-			if (index == total) {
-				top = count;
-			} else {
-				top = index * size;
-			}
-			// SQL语句，按照出院科室、出院日期、页面大小和选择页数查询已导出未录入的病历信息
-			sql = "select t2.行号,t1.FPRN+cast(t1.FTIMES as varchar) 唯一标识,t1.FPRN 住院号,t1.FTIMES 住院次数,t1.FNAME 姓名,t1.FCYDEPT 出院科室,convert(varchar,t1.FCYDATE,23) 出院日期\r\n"
-					+ "from HIS_BA1 t1,(select top " + top
-					+ " row_number() over(order by FCYDEPT asc,convert(varchar,FCYDATE,23) asc,FPRN+cast(FTIMES as varchar) asc) 行号,FPRN+cast(FTIMES as varchar) 唯一标识 from HIS_BA1 where FCYDATE between '"
-					+ cyDate1 + "' and " + cyDate2 + " and FCYDEPT in (" + cyDeps + ") and FNAME like '%" + name
-					+ "%' and FPRN like '%" + number + "%' and Fifinput=0) t2 \r\n"
-					+ "where t1.FPRN+cast(t1.FTIMES as varchar)=t2.唯一标识 and t2.行号>" + row + " \r\n"
-					+ "order by 出院科室 asc,出院日期 asc,唯一标识 asc;\r\n";
+
+		String sql = "select row_number() over(order by FCYDEPT asc,convert(varchar,FCYDATE,23) asc,FPRN+cast(FTIMES as varchar) asc) 行号"
+				+ ",FPRN+cast(FTIMES as varchar) 唯一标识,FPRN 住院号,FTIMES 住院次数,FNAME 姓名,FCYDEPT 出院科室,convert(varchar,FCYDATE,23) 出院日期"
+				+ " from HIS_BA1 where FCYDATE between '" + cyDate1 + "' and " + cyDate2 + " and FCYDEPT in (" + cyDeps
+				+ ") and FNAME like '%" + name + "%' and FPRN like '%" + number + "%' and Fifinput=0"
+				+ " order by FCYDEPT asc,convert(varchar,FCYDATE,23) asc,FPRN+cast(FTIMES as varchar) asc;";
+
+		return (ArrayList<Patient>) getResults(sql, "object", "batj").get("patients");
+	}
+
+	// 分页查询
+	@SuppressWarnings("unchecked")
+	public ArrayList<Patient> queryPatientsBasic(String cyDeps, String cyDate1, String cyDate2, String name,
+			String number, int size, int index, int count, int total) throws Exception {
+		cyDate2 = "'" + cyDate2 + " 23:59:59.999'";
+		// 设置top和row_number()
+		int top = 0;
+		int row = (index - 1) * size;
+		if (index == total) {
+			top = count;
 		} else {
-			sql = "select row_number() over(order by FCYDEPT asc,convert(varchar,FCYDATE,23) asc,FPRN+cast(FTIMES as varchar) asc) 行号"
-					+ ",FPRN+cast(FTIMES as varchar) 唯一标识,FPRN 住院号,FTIMES 住院次数,FNAME 姓名,FCYDEPT 出院科室,convert(varchar,FCYDATE,23) 出院日期"
-					+ " from HIS_BA1 where FCYDATE between '" + cyDate1 + "' and " + cyDate2 + " and FCYDEPT in ("
-					+ cyDeps + ") and FNAME like '%" + name + "%' and FPRN like '%" + number + "%' and Fifinput=0"
-					+ " order by FCYDEPT asc,convert(varchar,FCYDATE,23) asc,FPRN+cast(FTIMES as varchar) asc;";
+			top = index * size;
 		}
+
+		// SQL语句，按照出院科室、出院日期、页面大小和选择页数查询已导出未录入的病历信息
+		String sql = "select t2.行号,t1.FPRN+cast(t1.FTIMES as varchar) 唯一标识,t1.FPRN 住院号,t1.FTIMES 住院次数,t1.FNAME 姓名,t1.FCYDEPT 出院科室,convert(varchar,t1.FCYDATE,23) 出院日期\r\n"
+				+ "from HIS_BA1 t1,(select top " + top
+				+ " row_number() over(order by FCYDEPT asc,convert(varchar,FCYDATE,23) asc,FPRN+cast(FTIMES as varchar) asc) 行号,FPRN+cast(FTIMES as varchar) 唯一标识 from HIS_BA1 where FCYDATE between '"
+				+ cyDate1 + "' and " + cyDate2 + " and FCYDEPT in (" + cyDeps + ") and FNAME like '%" + name
+				+ "%' and FPRN like '%" + number + "%' and Fifinput=0) t2 \r\n"
+				+ "where t1.FPRN+cast(t1.FTIMES as varchar)=t2.唯一标识 and t2.行号>" + row + " \r\n"
+				+ "order by 出院科室 asc,出院日期 asc,唯一标识 asc;\r\n";
+
 		return (ArrayList<Patient>) getResults(sql, "object", "batj").get("patients");
 	}
 
