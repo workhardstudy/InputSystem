@@ -42,6 +42,8 @@ public class Download extends HttpServlet {
 		String bean = request.getParameter("bean");
 		String range = request.getParameter("range");
 		String type = request.getParameter("type");
+		String pageSize = request.getParameter("pageSize");
+		String index = request.getParameter("index");
 		// System.out.println(bean + "," + range + "," + type);
 		if ("patient".equals(bean)) {
 			String fileName = null;
@@ -53,7 +55,7 @@ public class Download extends HttpServlet {
 				oldData = oldPage.getdata();
 			if (oldData != null)
 				if ("present".equals(range)) {
-					int index = (int) oldData.get("index");
+					// int index = (int) oldData.get("index");
 					fileName = "第" + index + "页";
 					patients = (ArrayList<Patient>) oldData.get("patients");
 				} else if ("all".equals(range)) {

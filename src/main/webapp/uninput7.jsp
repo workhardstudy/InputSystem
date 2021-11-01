@@ -103,8 +103,11 @@
 		var cydate2 = $("input[name='cydate2']").val();
 		var size = $("select[name='pageSize']").val();
 		var index = $("#index").val();
-		//每次提交表格或选择页数查询时，应该检查本次查询条件和上次查询条件是否改变或者本次页面大小是否为all，
-		//如果条件改变或者页面大小为all，则重置选择页数为1，但是javaScript应该不能保存上次的条件，所以在JSP页面，即后台判断。
+		//每次提交表格或使用分页按钮查询时，应该检查本次查询条件和上次查询条件是否改变或者本次页面大小是否为all
+		//如果条件改变，则重置选择页数为1，这里使用JSP页面进行判断，即在后台使用session保存上次的查询条件进行判断，
+		//如果使用javaScript保存上次的查询条件，则可以使用隐藏域保存或者使用cookie保存（需要浏览器支持cookie），
+		//前端重置的好处是可以减少服务器的压力，提高性能，坏处是处理方法的代码暴露给用户。
+		//如果页面大小为all，则总页数为1，选择页数始终为1，前端重置index
 		if(size=="all")
 			$("#index").val('1');
 		//判断请求参数是否为空
@@ -172,9 +175,9 @@
 	ArrayList<Patient> patients = null;//存储查询结果
 	String cyDeps=null;//存储出院科室字符串
 	int size=0;//页面大小
-	int index=1;//选择页数
+	int index=1;//选择页数，初始选择第一页
 	int count=0;//总记录数
-	int total=1;//总页数	
+	int total=1;//总页数，默认值只有一页	
 		
 	//校验数据类型，并初始化查询条件
 	try{
@@ -182,7 +185,7 @@
 		//if(pageSize != null && !pageSize.equals("all"))
 			//size = Integer.parseInt(pageSize);
 		//初始化查询页数，校验数值型
-		if(pageIndex != null)
+		if(pageIndex != null && pageSize != null && !pageSize.equals("all"))
 			index = Integer.parseInt(pageIndex);
 		//校验日期类型
 		SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd");//格式化日期的格式
@@ -246,13 +249,18 @@
 			oldSize = oldPage.getsize();
 		}	
 		
+		//比较当前查询条件与上次查询条件，如果查询条件改变，则重置选择页数为第1页。
+		if(!pageSize.equals(oldSize)||!cyDeps.equals(oldcyDeps)||!cyDate1.equals(oldcyDate1)
+				||!cyDate2.equals(oldcyDate2)||!name.equals(oldName)||!number.equals(oldNumber))
+			index=1;
+		
 		PatientDAO patientDAO = new PatientDAO();
 	//录入时导致病案记录发生变化，患者数量可能发生改变，且需要避免不同用户同时修改同一记录出现的错误，应该在录入时增加同步操作。
 	//如果是分页查询，则两次查询，第一次按照条件查询总数，第二次按照条件查询患者，如果中间发生录入操作，则两次查询到的患者实际不一定相同。
 	//为了保证第一次查询和第二次查询代表的患者一致，使用同步代码块，且和录入使用同一个对象锁，即当前JSP编译的Servlet的对象。
-	//由于录入和查询都使用同步操作限制，查询和录入用户多时效率低，但是只限当前系统，和广东省病案系统的录入功能独立，造成最终效果不是很好。
-	synchronized(this){				
-		//是否分页查询
+	//由于录入和查询都使用同步操作限制，查询和录入用户多时效率低，但是应该只限当前系统，和广东省病案系统的录入功能独立，造成最终效果不是很好。
+	synchronized(this){		
+		//是否分页查询，分页查询可以先分页再查询，也可以先查询全部结果在显示分页的结果集，如果使用先分页再查询。
 		if(!pageSize.equals("all")){
 			//分页查询	
 			//按照条件查询总记录数
@@ -266,8 +274,11 @@
 				else
 					total = count/size+1;
 				//比较当前查询条件与上次查询条件，如果选择页数超界或者查询条件改变，则重置选择页数为第1页。
-				if(index>total||index<1||!pageSize.equals(oldSize)||!cyDeps.equals(oldcyDeps)||!cyDate1.equals(oldcyDate1)
-					||!cyDate2.equals(oldcyDate2)||!name.equals(oldName)||!number.equals(oldNumber))
+				//if(index>total||index<1||!pageSize.equals(oldSize)||!cyDeps.equals(oldcyDeps)||!cyDate1.equals(oldcyDate1)
+				//	||!cyDate2.equals(oldcyDate2)||!name.equals(oldName)||!number.equals(oldNumber))
+				//	index=1;
+				//如果选择页数超界，则重置选择页数为第1页
+				if(index<1 || index>total)
 					index=1;
 				patients = patientDAO.queryPatientsBasic(cyDeps,cyDate1,cyDate2,name,number,size,index,count,total);
 			}else
@@ -275,7 +286,8 @@
 		}else{
 			//非分页查询
 			patients = patientDAO.queryPatientsBasic(cyDeps,cyDate1,cyDate2,name,number);
-			index=1;
+			//如果页面大小为all，则总页数为1，选择页数始终为1，后台重置index
+			//index=1;
 		}
 	}
 		
@@ -291,13 +303,15 @@
 		oldData.put("cyDate1", cyDate1);
 		oldData.put("cyDate2", cyDate2);
 		oldData.put("name", name);
-		oldData.put("number", number);		
+		oldData.put("number", number);
 		oldData.put("patients", patients);//用于导出结果
-		oldData.put("index", index);
+		//oldData.put("index", index);
 		oldPage.setdata(oldData);
 		oldPage.setsize(pageSize);
 		session.setAttribute("oldPage", oldPage);
+		
 		//用于页面最后显示查询结果数量
+		//对比前后两次查询条件设在后台，这种重置index在后台，所以使用后台的index，而不是前端传来的pageIndex
 		pageContext.setAttribute("index", index);
 		pageContext.setAttribute("count", count);
 		pageContext.setAttribute("total", total);
@@ -371,15 +385,18 @@
 </form>   
 	</td>
 	<td>
+		<!-- 导出功能的问题：如果是分页查询，这里是先分页后查询并非查询全部结果后显示分页的集合，则导致分页查询，导出全部结果而非本页结果时，
+		需要重新查询数据库，因为录入导致病历可能时刻改变，最后查询的数据可能不一致，存在本页查询的结果不在全部导出结果中。
+		这里导出结果尽量使用了缓存在session中的patients数据，减少数据库连接，而不是重新查询后再导出结果。-->
 		<div id="export">
 			<input type="button" value="导出结果" onclick="show()">
 			<ul>
-			 	<li><a href="export?bean=patient&range=present&type=xls">导出本页为xls文件</a></li>
-				<li><a href="export?bean=patient&range=present&type=xlsx">导出本页为xlsx文件</a></li>
-				<li><a href="export?bean=patient&range=present&type=csv">导出本页为csv文件</a></li>
-				<li><a href="export?bean=patient&range=all&type=xls">全部导出为xls文件</a></li>
-				<li><a href="export?bean=patient&range=all&type=xlsx">全部导出为xlsx文件</a></li>
-				<li><a href="export?bean=patient&range=all&type=csv">全部导出为csv文件</a></li>			
+			 	<li><a href="export?bean=patient&range=present&type=xls&size=${param.pageSize}&index=${index}">导出本页为xls文件</a></li>
+				<li><a href="export?bean=patient&range=present&type=xlsx&size=${param.pageSize}&index=${index}">导出本页为xlsx文件</a></li>
+				<li><a href="export?bean=patient&range=present&type=csv&size=${param.pageSize}&index=${index}">导出本页为csv文件</a></li>
+				<li><a href="export?bean=patient&range=all&type=xls&size=${param.pageSize}&index=${index}">全部导出为xls文件</a></li>
+				<li><a href="export?bean=patient&range=all&type=xlsx&size=${param.pageSize}&index=${index}">全部导出为xlsx文件</a></li>
+				<li><a href="export?bean=patient&range=all&type=csv&size=${param.pageSize}&index=${index}">全部导出为csv文件</a></li>			
 			</ul>
 		</div>	
 	</td>
@@ -461,7 +478,7 @@
 	<tr>
 		<td align="right">
 			<span>
-				总共<span id="total">${total}</span>页，一共${param.pageSize eq 'all'?patients.size():count}行，当前选择第${index}页，本页${patients.size()}行。
+				总共<span id="total">${total}</span>页，一共${param.pageSize eq "all"?patients.size():count}行，当前选择第${index}页，本页${patients.size()}行。
 			</span>
 		</td>
 	</tr>
