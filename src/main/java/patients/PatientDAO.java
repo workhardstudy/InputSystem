@@ -3,7 +3,9 @@ package patients;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -174,6 +176,8 @@ public class PatientDAO {
 		Statement stat = (Statement) midResult.get("statement");
 		ResultSet rSet = (ResultSet) midResult.get("resultSet");
 		Map<String, Object> result = new HashMap<String, Object>();
+		// 设置查询时间格式
+		SimpleDateFormat fs = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
 		try {
 			if (type == "number") {
 				int count = 0;
@@ -187,12 +191,14 @@ public class PatientDAO {
 				if (rSet != null)
 					while (rSet.next()) {
 						Patient patient = new Patient();
+						// 设置患者基本信息
 						patient.setid(rSet.getString("唯一标识"));
 						patient.setad(rSet.getString("住院号"));
 						patient.settimes(rSet.getString("住院次数"));
 						patient.setname(rSet.getString("姓名"));
 						patient.setcyDepartment(rSet.getString("出院科室"));
 						patient.setcyDate(rSet.getString("出院日期"));
+						// 设置患者治疗信息
 						try {
 							patient.setzyICD10(rSet.getString("主要诊断编码"));
 							patient.setzyICD10name(rSet.getString("主要诊断名称"));
@@ -201,10 +207,13 @@ public class PatientDAO {
 						} catch (Exception e) {
 							// 执行到这里说明没有主要诊断编码、主要诊断名称、主要手术操作编码或主要手术操作名称等相关信息。
 						}
+						// 设置分页查询信息
 						try {
 							patient.setindex(rSet.getString("行号"));
 						} catch (Exception e) {
 							// 执行到这里说明没有行号的信息。
+						} finally {
+							patient.setcheckDate(fs.format(new Date()));// 设置查询时间
 						}
 						patients.add(patient);
 					}

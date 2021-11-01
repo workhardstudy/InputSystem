@@ -42,7 +42,6 @@ public class Download extends HttpServlet {
 		String bean = request.getParameter("bean");
 		String range = request.getParameter("range");
 		String type = request.getParameter("type");
-		String pageSize = request.getParameter("pageSize");
 		String index = request.getParameter("index");
 		// System.out.println(bean + "," + range + "," + type);
 		if ("patient".equals(bean)) {
@@ -56,19 +55,24 @@ public class Download extends HttpServlet {
 			if (oldData != null)
 				if ("present".equals(range)) {
 					// int index = (int) oldData.get("index");
-					fileName = "第" + index + "页";
+					fileName = "未录入病历第" + index + "页";
 					patients = (ArrayList<Patient>) oldData.get("patients");
 				} else if ("all".equals(range)) {
-					fileName = "全部";
-					String cyDeps = (String) oldData.get("cydeps");
-					String cyDate1 = (String) oldData.get("cyDate1");
-					String cyDate2 = (String) oldData.get("cyDate2");
-					String name = (String) oldData.get("name");
-					String number = (String) oldData.get("number");
-					try {
-						patients = new PatientDAO().queryPatientsBasic(cyDeps, cyDate1, cyDate2, name, number);
-					} catch (Exception e) {
-						e.printStackTrace();
+					fileName = "未录入病历全部";
+					if (oldPage.getsize().equals("all")) {
+						patients = (ArrayList<Patient>) oldData.get("patients");
+					} else {
+						// 页面大小不是all，且要获取全部查询结果，因为这里的分页查询是分页后查询，所以要重新查询全部结果，没有相应的缓存。
+						String cyDeps = (String) oldData.get("cydeps");
+						String cyDate1 = (String) oldData.get("cyDate1");
+						String cyDate2 = (String) oldData.get("cyDate2");
+						String name = (String) oldData.get("name");
+						String number = (String) oldData.get("number");
+						try {
+							patients = new PatientDAO().queryPatientsBasic(cyDeps, cyDate1, cyDate2, name, number);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
 				}
 			if (patients != null) {
@@ -133,6 +137,7 @@ public class Download extends HttpServlet {
 					header.createCell(3).setCellValue("姓名");
 					header.createCell(4).setCellValue("出院科室");
 					header.createCell(5).setCellValue("出院日期");
+					header.createCell(6).setCellValue("查询时间");
 					for (int i = 0; i < patients.size(); i++) {
 						Patient patient = patients.get(i);
 						Row row = sheet.createRow(i + 1);
@@ -142,6 +147,7 @@ public class Download extends HttpServlet {
 						row.createCell(3).setCellValue(patient.getname());
 						row.createCell(4).setCellValue(patient.getcyDepartment());
 						row.createCell(5).setCellValue(patient.getcyDate());
+						row.createCell(6).setCellValue(patient.getcheckDate());
 					}
 					// 设置水平排列方式，水平居中
 					CellStyle style = wb.createCellStyle();
@@ -157,7 +163,7 @@ public class Download extends HttpServlet {
 						}
 					}
 					// 自动调整列宽，根据workbook第一个字符的字体和宽度调整列宽，如果字体改变则改变后的字体不适用，所以要先设置字体类型和大小
-					for (int i = 0; i < 6; i++) {
+					for (int i = 0; i < 7; i++) {
 						sheet.autoSizeColumn(i);
 					}
 					// 如果workbook第一个字符非中文，解决中文的自动调整列宽的问题
@@ -171,7 +177,7 @@ public class Download extends HttpServlet {
 					 */
 					// 添加边框
 					PropertyTemplate pt = new PropertyTemplate();
-					pt.drawBorders(new CellRangeAddress(0, patients.size(), 0, 5), BorderStyle.THIN, BorderExtent.ALL);
+					pt.drawBorders(new CellRangeAddress(0, patients.size(), 0, 6), BorderStyle.THIN, BorderExtent.ALL);
 					pt.applyBorders(sheet);
 					// 冻结第一行，即标题行
 					sheet.createFreezePane(0, 1, 0, 1);

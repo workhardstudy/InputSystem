@@ -391,12 +391,12 @@
 		<div id="export">
 			<input type="button" value="导出结果" onclick="show()">
 			<ul>
-			 	<li><a href="export?bean=patient&range=present&type=xls&size=${param.pageSize}&index=${index}">导出本页为xls文件</a></li>
-				<li><a href="export?bean=patient&range=present&type=xlsx&size=${param.pageSize}&index=${index}">导出本页为xlsx文件</a></li>
-				<li><a href="export?bean=patient&range=present&type=csv&size=${param.pageSize}&index=${index}">导出本页为csv文件</a></li>
-				<li><a href="export?bean=patient&range=all&type=xls&size=${param.pageSize}&index=${index}">全部导出为xls文件</a></li>
-				<li><a href="export?bean=patient&range=all&type=xlsx&size=${param.pageSize}&index=${index}">全部导出为xlsx文件</a></li>
-				<li><a href="export?bean=patient&range=all&type=csv&size=${param.pageSize}&index=${index}">全部导出为csv文件</a></li>			
+			 	<li><a href="export?bean=patient&range=present&type=xls&index=${index}">导出本页为xls文件</a></li>
+				<li><a href="export?bean=patient&range=present&type=xlsx&index=${index}">导出本页为xlsx文件</a></li>
+				<li><a href="export?bean=patient&range=present&type=csv&index=${index}">导出本页为csv文件</a></li>
+				<li><a href="export?bean=patient&range=all&type=xls">全部导出为xls文件</a></li>
+				<li><a href="export?bean=patient&range=all&type=xlsx">全部导出为xlsx文件</a></li>
+				<li><a href="export?bean=patient&range=all&type=csv">全部导出为csv文件</a></li>			
 			</ul>
 		</div>	
 	</td>
@@ -410,7 +410,8 @@
         		<th>住院次数</th>
        		 	<th>姓名</th> 
         		<th>出院科室</th> 
-        		<th>出院日期</th> 
+        		<th>出院日期</th>
+        		<th>查询时间</th>
         		<th><input type="checkbox" name="input">操作</th>  
 			</tr>  
 			<!-- 显示查询结果 -->
@@ -423,6 +424,7 @@
 						<td>${patient.name}</td>
 						<td>${patient.cyDepartment}</td>
 						<td>${patient.cyDate}</td>
+						<td>${patient.checkDate}</td>
 						<!--<td><input type="checkbox" name="selectedPatients"
 						 value="${fn:substring(patient.ad,0,fn:length(patient.ad)).concat(patient.times)}">录入</td>
 						<td><input type="checkbox" name="input" value="${patient.ad.concat(patient.times)}">录入</td>-->

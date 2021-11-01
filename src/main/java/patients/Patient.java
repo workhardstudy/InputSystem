@@ -13,17 +13,21 @@ package patients;
  * @版本: 1.0
  */
 public class Patient {
+	// 患者基本信息
 	private String id;// 唯一标识
 	private String ad;// 住院号
 	private String times;// 住院次数
 	private String name;// 姓名
 	private String cyDepartment;// 出院科室
 	private String cyDate;// 出院日期
+	// 患者治疗信息
 	private String zyICD10;// 主要诊断编码
 	private String zyICD10name;// 主要诊断名称
 	private String zyICD9;// 主要手术操作编码
 	private String zyICD9name;// 主要手术操作名称
+	// 分页查询信息
 	private String index;// 分页查询的行号
+	private String checkDate;// 分页查询时间
 
 	public String getindex() {
 		return index;
@@ -31,6 +35,14 @@ public class Patient {
 
 	public void setindex(String index) {
 		this.index = index;
+	}
+
+	public String getcheckDate() {
+		return checkDate;
+	}
+
+	public void setcheckDate(String checkDate) {
+		this.checkDate = checkDate;
 	}
 
 	public String getid() {
